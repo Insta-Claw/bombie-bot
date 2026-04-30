@@ -81,14 +81,12 @@ app.event("app_mention", async ({ event, client }) => {
 
     if (missing.length === 0) return;
 
-    const missingList = missing.map((id) => `<@${id}>`).join(", ");
     await client.chat.postMessage({
       channel: task.channel,
       text:
         `:bomb: :boom: :bomb: *BOOM! The deadline exploded!* :bomb: :boom: :bomb:\n\n` +
-        `<@${task.assigner}> assigned: *${task.description}*\n\n` +
-        `The following people haven't defused the bomb with ✅ yet: ${missingList}\n\n` +
-        `:fire: React with ✅ on the task registered message or provide an update before things get worse!`,
+        `<@${task.assigner}> assigned: *${task.description}*\n` +
+        `${missingList} please provide an update ASAP!`,
     });
 
     tasks.delete(taskId);
