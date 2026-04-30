@@ -47,7 +47,7 @@ app.event("app_mention", async ({ event, client }) => {
   const confirmMsg = await client.chat.postMessage({
     channel: event.channel,
     text:
-      `:white_check_mark: Task registered!\n` +
+      `Task registered!\n` +
       `*Task:* ${taskDescription}\n` +
       `*Assigned to:* ${assigneeList}\n` +
       `*Deadline:* ${deadline.toFormat("MMM dd, yyyy HH:mm")}\n\n` +
@@ -81,18 +81,19 @@ app.event("app_mention", async ({ event, client }) => {
 
     if (missing.length === 0) return;
 
+    const missingList = missing.map((id) => `<@${id}>`).join(", ");
+
     await client.chat.postMessage({
       channel: task.channel,
       text:
-        `:bomb: :boom: :bomb: *BOOM! The deadline exploded!* :bomb: :boom: :bomb:\n\n` +
+        `:bomb: :boom: *BOOM! The deadline exploded!*\n\n` +
         `<@${task.assigner}> assigned: *${task.description}*\n` +
         `${missingList} please provide an update ASAP!`,
     });
 
     tasks.delete(taskId);
   });
-});
-
+  
 (async () => {
   await app.start(process.env.PORT || 3000);
   console.log("⚡️ Bombie bot is running!");
