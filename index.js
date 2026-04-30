@@ -16,7 +16,6 @@ app.event("app_mention", async ({ event, client }) => {
     .map((m) => m[1])
     .slice(1);
 
-  // Match either full date (2026-05-01 14:00) or short date (05-01 14:00)
   const fullDateMatch = text.match(/(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})/);
   const shortDateMatch = !fullDateMatch && text.match(/(?<!\d)(\d{2}-\d{2}\s+\d{2}:\d{2})/);
   const deadlineMatch = fullDateMatch || shortDateMatch;
@@ -86,14 +85,15 @@ app.event("app_mention", async ({ event, client }) => {
     await client.chat.postMessage({
       channel: task.channel,
       text:
-        `:bomb: :boom: *BOOM! The deadline exploded!*\n\n` +
+        `:bomb: :boom: :bomb: *BOOM! The deadline exploded!* :bomb: :boom: :bomb:\n\n` +
         `<@${task.assigner}> assigned: *${task.description}*\n` +
         `${missingList} please provide an update ASAP!`,
     });
 
     tasks.delete(taskId);
   });
-  
+});
+
 (async () => {
   await app.start(process.env.PORT || 3000);
   console.log("⚡️ Bombie bot is running!");
