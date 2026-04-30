@@ -67,10 +67,10 @@ app.event("app_mention", async ({ event, client, say }) => {
     await client.chat.postMessage({
       channel: task.channel,
       text:
-        `:rotating_light: *Deadline reached!*\n` +
+        `:bomb: :boom: :bomb: *BOOM! The deadline exploded!* :bomb: :boom: :bomb:\n\n` +
         `<@${task.assigner}> assigned: *${task.description}*\n\n` +
-        `The following people haven't reacted with ✅ yet: ${missingList}\n` +
-        `Please confirm completion or provide an update!`,
+        `The following people haven't defused the bomb with ✅ yet: ${missingList}\n\n` +
+        `:fire: React with ✅ on the original message or provide an update before things get worse!`,
     });
 
     tasks.delete(taskId);
