@@ -36,18 +36,6 @@ app.event("app_mention", async ({ event, client }) => {
   const deadline = DateTime.fromFormat(dateString, "yyyy-MM-dd HH:mm", {
     zone: "Asia/Singapore",
   });
-  
-  if (!deadlineMatch || userMentions.length === 0) {
-    await client.chat.postMessage({
-      channel: event.channel,
-      text: "Usage: `@bombie @person1 @person2 YYYY-MM-DD HH:MM task description`",
-    });
-    return;
-  }
-
-  const deadline = DateTime.fromFormat(deadlineMatch[1], "yyyy-MM-dd HH:mm", {
-    zone: "Asia/Singapore",
-  });
 
   const taskDescription = text
     .replace(/<@[A-Z0-9]+>/g, "")
@@ -56,7 +44,6 @@ app.event("app_mention", async ({ event, client }) => {
 
   const assigneeList = userMentions.map((id) => `<@${id}>`).join(", ");
 
-  // Post the confirmation message and capture its timestamp
   const confirmMsg = await client.chat.postMessage({
     channel: event.channel,
     text:
@@ -67,11 +54,10 @@ app.event("app_mention", async ({ event, client }) => {
       `React with ✅ *on this message* to mark as done before the deadline.`,
   });
 
-  // Store the confirmation message's timestamp (not the original command)
   const taskId = `${event.channel}-${confirmMsg.ts}`;
   tasks.set(taskId, {
     channel: event.channel,
-    messageTs: confirmMsg.ts, // <-- now watching the bot's own message
+    messageTs: confirmMsg.ts,
     assigner: event.user,
     assignees: userMentions,
     description: taskDescription,
