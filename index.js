@@ -16,7 +16,27 @@ app.event("app_mention", async ({ event, client }) => {
     .map((m) => m[1])
     .slice(1);
 
-  const deadlineMatch = text.match(/(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})/);
+  // Match either full date (2026-05-01 14:00) or short date (05-01 14:00)
+  const fullDateMatch = text.match(/(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})/);
+  const shortDateMatch = text.match(/(\d{2}-\d{2}\s+\d{2}:\d{2})/);
+  const deadlineMatch = fullDateMatch || shortDateMatch;
+
+  if (!deadlineMatch || userMentions.length === 0) {
+    await client.chat.postMessage({
+      channel: event.channel,
+      text: "Usage: `@bombie @person1 @person2 MM-DD HH:MM task description`",
+    });
+    return;
+  }
+
+  const dateString = fullDateMatch
+    ? deadlineMatch[1]
+    : `2026-${deadlineMatch[1]}`;
+
+  const deadline = DateTime.fromFormat(dateString, "yyyy-MM-dd HH:mm", {
+    zone: "Asia/Singapore",
+  });
+  
   if (!deadlineMatch || userMentions.length === 0) {
     await client.chat.postMessage({
       channel: event.channel,
