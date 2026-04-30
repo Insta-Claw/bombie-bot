@@ -18,7 +18,7 @@ app.event("app_mention", async ({ event, client }) => {
 
   // Match either full date (2026-05-01 14:00) or short date (05-01 14:00)
   const fullDateMatch = text.match(/(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})/);
-  const shortDateMatch = text.match(/(\d{2}-\d{2}\s+\d{2}:\d{2})/);
+  const shortDateMatch = !fullDateMatch && text.match(/(?<!\d)(\d{2}-\d{2}\s+\d{2}:\d{2})/);
   const deadlineMatch = fullDateMatch || shortDateMatch;
 
   if (!deadlineMatch || userMentions.length === 0) {
@@ -30,8 +30,8 @@ app.event("app_mention", async ({ event, client }) => {
   }
 
   const dateString = fullDateMatch
-    ? deadlineMatch[1]
-    : `2026-${deadlineMatch[1]}`;
+    ? fullDateMatch[1]
+    : `2026-${shortDateMatch[1]}`;
 
   const deadline = DateTime.fromFormat(dateString, "yyyy-MM-dd HH:mm", {
     zone: "Asia/Singapore",
