@@ -9,16 +9,19 @@ const app = new App({
 
 const tasks = new Map();
 
-app.event("app_mention", async ({ event, client, say }) => {
+app.event("app_mention", async ({ event, client }) => {
   const text = event.text;
 
   const userMentions = [...text.matchAll(/<@([A-Z0-9]+)>/g)]
     .map((m) => m[1])
-    .slice(1); // skip the first mention (the bot itself)
+    .slice(1);
 
   const deadlineMatch = text.match(/(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2})/);
   if (!deadlineMatch || userMentions.length === 0) {
-    await say("Usage: `@bombie @person1 @person2 YYYY-MM-DD HH:MM task description`");
+    await client.chat.postMessage({
+      channel: event.channel,
+      text: "Usage: `@bombie @person1 @person2 YYYY-MM-DD HH:MM task description`",
+    });
     return;
   }
 
@@ -31,19 +34,28 @@ app.event("app_mention", async ({ event, client, say }) => {
     .replace(deadlineMatch[0], "")
     .trim();
 
-  const taskId = `${event.channel}-${event.ts}`;
+  const assigneeList = userMentions.map((id) => `<@${id}>`).join(", ");
+
+  // Post the confirmation message and capture its timestamp
+  const confirmMsg = await client.chat.postMessage({
+    channel: event.channel,
+    text:
+      `:white_check_mark: Task registered!\n` +
+      `*Task:* ${taskDescription}\n` +
+      `*Assigned to:* ${assigneeList}\n` +
+      `*Deadline:* ${deadline.toFormat("MMM dd, yyyy HH:mm")}\n\n` +
+      `React with ✅ *on this message* to mark as done before the deadline.`,
+  });
+
+  // Store the confirmation message's timestamp (not the original command)
+  const taskId = `${event.channel}-${confirmMsg.ts}`;
   tasks.set(taskId, {
     channel: event.channel,
-    messageTs: event.ts,
+    messageTs: confirmMsg.ts, // <-- now watching the bot's own message
     assigner: event.user,
     assignees: userMentions,
     description: taskDescription,
   });
-
-  const assigneeList = userMentions.map((id) => `<@${id}>`).join(", ");
-  await say(
-    `:white_check_mark: Task registered!\n*Task:* ${taskDescription}\n*Assigned to:* ${assigneeList}\n*Deadline:* ${deadline.toFormat("MMM dd, yyyy HH:mm")}\n\nReact with ✅ on this message to mark as done before the deadline.`
-  );
 
   schedule.scheduleJob(deadline.toJSDate(), async () => {
     const task = tasks.get(taskId);
@@ -70,7 +82,7 @@ app.event("app_mention", async ({ event, client, say }) => {
         `:bomb: :boom: :bomb: *BOOM! The deadline exploded!* :bomb: :boom: :bomb:\n\n` +
         `<@${task.assigner}> assigned: *${task.description}*\n\n` +
         `The following people haven't defused the bomb with ✅ yet: ${missingList}\n\n` +
-        `:fire: React with ✅ on the original message or provide an update before things get worse!`,
+        `:fire: React with ✅ on the task registered message or provide an update before things get worse!`,
     });
 
     tasks.delete(taskId);
